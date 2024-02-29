@@ -1,0 +1,22 @@
+body{
+    font-family: "Roboto Mono",monospace;
+}
+#container{
+   
+    background-image: url('./pages/RailBookWallpaper.jpg');
+    background-position-y: center;
+}
+#train_background{
+    background-image: url('./components/image.png');
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+ 
+}
+input[type="date"]{
+    height: 100%;
+    background-color: #afd0f1;
+    padding: 15px;
+    font-family: "Roboto Mono",monospace;
+    color: #ffffff;
+    font-size: 18px;
+}
