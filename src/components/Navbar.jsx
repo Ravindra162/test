@@ -14,7 +14,7 @@ const Navbar = () => {
    }).then((response)=>setName(response.data))
    },[])
   return (
-    <div className='fixed h-16 w-full bg-slate-100 flex justify-between gap-0 items-center'>
+    <div className='h-16 w-full bg-slate-100 flex justify-between gap-0 items-center'>
       <button className='basis-1/2 ml-10'><div className='float-left text-blue-500 text-2xl font-extrabold'>RailQuest</div></button>
      <button className='transition ease-in-out delay-100 text-black mx-10 w-36 h-12 hover:bg-[#167CD8] hover:text-white rounded-xl'>Search Trains</button>
      <button className='transition ease-in-out delay-100 text-black mx-10 w-36 h-12 hover:bg-[#167CD8] hover:text-white rounded-xl'>Book Ticket</button>

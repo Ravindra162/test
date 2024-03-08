@@ -15,7 +15,7 @@ export default function Login() {
         if(response.data.message==='Login Success'){
         const token = response.data.token
         localStorage.setItem('token',token)
-        navigate('/user')
+        window.location.href='/user'
     }
      })
      
