@@ -1,11 +1,11 @@
 import React, { useState,useEffect } from 'react'
 import { useRecoilState } from 'recoil'
 import axios from 'axios'
-import { usernameAtom } from '../store/atoms/username'
+import { userAtom } from '../store/atoms/user'
 import { useNavigate } from 'react-router-dom'
 const Navbar = () => {
   const navigate = useNavigate()
-  const [name,setName] = useRecoilState(usernameAtom)
+  const [name,setName] = useRecoilState(userAtom)
   useEffect(()=>{
     axios.get('http://localhost:3000/api/user',{
        headers:{

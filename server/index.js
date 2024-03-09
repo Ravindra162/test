@@ -14,7 +14,7 @@ const pool = mysql.createPool({
 })
 
 
-pool.query(`SELECT * from trains`,function(err,result,fields){
+pool.query(`SELECT * from trains1`,function(err,result,fields){
     if(err)throw err
     console.log('CONNECTED TO DB')
 })
@@ -81,7 +81,10 @@ app.get('/api/user',authMiddleware,(req,res)=>{
      const userEmail = req.user.email
      pool.query(`select * from users where email=?`,[userEmail],(err,result,fields)=>{
         if(err)console.log(err)
-        res.json(result[0].username)
+        res.json({
+                username:result[0].username,
+                userId:result[0].user_id
+         })
      })
 })
 
@@ -164,53 +167,29 @@ app.get('/api/search',(req,res)=>{
 
 })
 
-    // app.post('/checkOut', async (req, res) => {
-    //     const ticket = req.body.ticketDetails;
-
-    //     // Calculate total amount in paise
-    //     const totalAmount = ticket.passengerCount * ticket.ticket_price * 100;
-
-    //     // Define line items for the checkout session
-    //     const lineItems = [
-    //         {
-    //             price_data: {
-    //                 currency: 'inr',
-    //                 product_data: {
-    //                     name: 'Railway Ticket',
-    //                 },
-    //                 unit_amount: ticket.ticket_price * 100, // Convert to paise
-    //             },
-    //             quantity: ticket.passengerCount,
-    //         },
-    //     ];
-
-    //     // Create PaymentIntent
-    //     // const paymentIntent = await stripe.paymentIntents.create({
-    //     //     amount: totalAmount,
-    //     //     currency: 'inr',
-    //     //     payment_method_types: ['card'],
-    //     //     metadata: {
-    //     //         customer_name: 'John Doe', // Replace with actual customer name
-    //     //         customer_address: '123 Main Street, Bangalore, Karnataka, 560001, India', // Replace with actual customer address
-    //     //     },
-    //     // });
-
-    //     // Create Checkout Session
-    //     const session = await stripe.checkout.sessions.create({
-    //         mode: 'payment',
-    //         line_items: lineItems,
-    //         success_url: "http://localhost:5173/user/payment/success",
-    //         cancel_url: "http://localhost:5173/user/payment/failed",
-    //     });
-
-    //     res.json({ session_id: session.id });
-    // });
+  app.post('/api/payment',(req,res)=>{
+    const {userId,ticketInfo} = req.body
+    console.log(userId)
+    console.log(ticketInfo)
+    pool.query('insert into tickets ')
+    return res.json({
+        isDone:true
+    })
+  })
 
 
 app.post('/DonePayment',(req,res)=>{
     const ticket = req.body.ticketDetails
-    const passengerDetails = req.body.passengerDetails
+    const userId = req.body.userId
+    const passengers = req.body.passengers
+    console.log(ticket)
+    console.log(userId)
+    console.log(passengers)
 
+})
+
+app.post('book-ticket',(req,res)=>{
+    
 })
 
 app.listen(PORT || process.env.PORT,()=>{

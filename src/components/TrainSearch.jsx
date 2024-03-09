@@ -3,10 +3,8 @@ import  axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import { useRecoilState } from 'recoil'
 import { trainsAtom } from '../store/atoms/trains'
-import { usernameAtom } from '../store/atoms/username'
 import Option from './Option'
 const TrainSearch = () => {
-  const [name,setName] = useRecoilState(usernameAtom)
   const [src,setSrc] = useState('')
     const [dest,setDest] =useState('')
     const [date,setDate] = useState('')

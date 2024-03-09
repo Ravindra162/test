@@ -1,10 +1,13 @@
 import React,{useState} from 'react'
 import {useNavigate} from 'react-router-dom'
 import { TicketAtom } from '../store/atoms/Ticket';
+import { userAtom } from '../store/atoms/user';
 import { useRecoilState } from 'recoil';
+import Navbar from '../components/Navbar';
 import axios  from 'axios'; 
 const Passenger = () => {
   const navigate = useNavigate()
+  const [username,setUsername] = useRecoilState(userAtom)
   const [ticket,setTicket] = useRecoilState(TicketAtom)
   const [passengers,setPassengers] = useState([{
     passengerName:'',
@@ -25,13 +28,34 @@ const Passenger = () => {
     e.preventDefault()
 
     if(ticket.passengerCount>0)
-     
+    { 
     alert('Payment Done')
+    axios.post('http://localhost:3000/api/payment',{ticketInfo:ticket,userId:username.userId}).then((res)=>{
+      console.log(res.data)
+      if(res.data.isDone==true){
+        axios.post('http://localhost:3000/book-ticket',{ticketDetails:ticket,userId:username.userId,passengers}).then((res)=>{
+          
+        })
+        console.log(passengers)
+      }
+    
+    })
+  }
 
     }
+    const handlePassengerChange = (index, field, value) => {
+      setPassengers(prevPassengers => {
+          const updatedPassengers = [...prevPassengers];
+          updatedPassengers[index] = {
+              ...updatedPassengers[index],
+              [field]: value
+          };
+          return updatedPassengers;
+      });
+  };
 
-  return (
-       
+  return (<>
+    <Navbar/>
     <center><div className='h-screen w-full justify-center items-center gap-5 overflow-scroll'>
        
      <div className='h-[20%] w-1/3 bg-green-400 rounded-lg'>
@@ -48,12 +72,15 @@ const Passenger = () => {
   
       <div className='h-96 w-full flex flex-col justify-center items-center gap-5 bg-slate-300'>
          <input 
+ onChange={(e) => handlePassengerChange(index, 'passengerName', e.target.value)}
          className=' h-12 w-1/2  border-2 border-black rounded-md text-xl'
          type='name' placeholder='Passenger Name' required/>
           <input 
-         className=' h-12 w-1/2  border-2 border-black rounded-md text-xl'
+           onChange={(e) => handlePassengerChange(index, 'Age', e.target.value)}
+          className=' h-12 w-1/2  border-2 border-black rounded-md text-xl'
          type='number' placeholder='Passenger Age' required/>
           <select 
+                     onChange={(e) => handlePassengerChange(index, 'Gender', e.target.value)}
           name='gender'
           required={true}
          className=' h-12 w-1/2  border-2 border-black rounded-md text-xl'>
@@ -72,11 +99,13 @@ const Passenger = () => {
          
          </select>
          <input 
-         className=' h-12 w-1/2  border-2 border-black rounded-md text-xl'
+          onChange={(e) => handlePassengerChange(index, 'ContactNo', e.target.value)}
+             className=' h-12 w-1/2  border-2 border-black rounded-md text-xl'
          type='number' placeholder='Contact No.' required/>
-          <input 
-         className=' h-12 w-1/2  border-2 border-black rounded-md text-xl'
-         type='number' placeholder='Passenger Age' required/>
+         <input 
+          onChange={(e) => handlePassengerChange(index, 'Country', e.target.value)}
+             className=' h-12 w-1/2  border-2 border-black rounded-md text-xl'
+         type='name' placeholder='Country' required/>
          <button onClick={() => removePassenger(index)}>Remove</button>
 
       </div>
@@ -93,6 +122,7 @@ const Passenger = () => {
      onClick={addNewPassenger}
      >Add new Passenger</button>
      </div></center>
+     </>
 
   )
 }
