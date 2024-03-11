@@ -5,7 +5,8 @@ export const TicketAtom = atom({
         trainNumber:'',
         trainName:'',
         class:'',
-        price:'',
-        passengerCount:1
+        passengerCount:1,
+        price:0,
+        
     }
 })

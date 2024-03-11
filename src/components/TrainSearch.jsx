@@ -3,10 +3,16 @@ import  axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import { useRecoilState } from 'recoil'
 import { trainsAtom } from '../store/atoms/trains'
+import {sourceAtom} from '../store/atoms/source'
+import { destinationAtom } from '../store/atoms/destination'
+import { isLoadingAtom } from '../store/atoms/isLoading'
 import Option from './Option'
+import { CrucksAtom } from '../store/atoms/Crucks'
 const TrainSearch = () => {
-  const [src,setSrc] = useState('')
-    const [dest,setDest] =useState('')
+  const [isLoading,setIsLoading] = useRecoilState(isLoadingAtom)
+  const [src,setSrc] = useRecoilState(sourceAtom)
+    const [crucks,setCrucks] = useRecoilState(CrucksAtom)
+    const [dest,setDest] =useRecoilState(destinationAtom)
     const [date,setDate] = useState('')
     const [trains,setTrains]=useRecoilState(trainsAtom)
     const [options] = useState(['Mumbai Central','Pune Junction','Nagpur Junction','Banglore City','Hyderabad Secunderabad']);
@@ -18,19 +24,31 @@ const TrainSearch = () => {
       e.preventDefault()
       axios.get(`http://localhost:3000/api/search?src=${src}&dest=${dest}&date=${date}`)
       .then(response=>{
-          if(response.data.found===true){
-          setTrains(response.data.trains)
-        console.log(response.data.trains)}
-          else{
-              setTrains([])
-              alert("No trains Found")
+          setIsLoading(true)
+          setTimeout(()=>{
+            if(response.data.found===true){
+              setTrains(response.data.trains)
+            console.log(response.data.trains)
           }
+              else{
+                  setTrains([])
+                  alert("No trains Found")
+              }
+              setIsLoading(false)
+          },1500)
+          
       })
   }
   const book = (trainData,classData) =>{
-    setSelect(true)
+    setIsLoading(true)
+    setTimeout(()=>{
+      setSelect(true)
     setClassData(classData)
     setTrainData(trainData)
+    setCrucks({source:src,destination:dest,date:date})
+    setIsLoading(false)
+    },1000)
+   
     
   }
     
@@ -40,7 +58,11 @@ const TrainSearch = () => {
 
   return (<div className='h-full w-full flex-col'>
 
-
+          {isLoading && (
+          <div className="absolute h-full w-full flex justify-center items-center backdrop-blur-sm z-50">
+            <div className="border-gray-300 h-20 w-20 animate-spin rounded-full border-8 border-t-blue-600" />
+          </div>
+            )}
     {select&&<Option setSelect={setSelect} setClassData={setClassData} setTrainData={setTrainData} trainData={trainData} classData={classData}/>}
 
 

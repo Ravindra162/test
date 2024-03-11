@@ -1,29 +1,37 @@
 import React,{useState} from 'react'
 import {Link,useNavigate} from 'react-router-dom'
 import axios from 'axios'
+import { isLoadingAtom } from '../store/atoms/isLoading'
+import { useRecoilState } from 'recoil'
 export default function Login() {
   const navigate = useNavigate()
   const [email,setEmail] = useState('')
-    const [password,setPassword] = useState('')
+  const [password,setPassword] = useState('')
+  const [isLoading,setIsLoading] = useRecoilState(isLoadingAtom)  
   function Login(e){
      e.preventDefault()
 
      axios.post('http://localhost:3000/api/login',{email,password})
      .then((response)=>{
 
-        alert(response.data.message)
+         setIsLoading(true)
         if(response.data.message==='Login Success'){
-        const token = response.data.token
+          setTimeout(()=>{
+            const token = response.data.token
         localStorage.setItem('token',token)
         window.location.href='/user'
+            setIsLoading(false)
+        
+          },1500)
+          
     }
      })
      
   }
   return (
-    <div className='h-screen w-1/1 bg-[#00A884] flex flex-col justify-center items-center' id='container'>
+    <div className='h-screen w-full flex flex-col justify-center items-center' id='container'>
       
-
+      
         <div className='h-1/2 w-2/5 bg-slate-200 rounded-lg shadow-2xl'>
              
              <form method='post' 

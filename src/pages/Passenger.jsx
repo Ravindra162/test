@@ -2,11 +2,13 @@ import React,{useState} from 'react'
 import {useNavigate} from 'react-router-dom'
 import { TicketAtom } from '../store/atoms/Ticket';
 import { userAtom } from '../store/atoms/user';
-import { useRecoilState } from 'recoil';
+import { useRecoilState, useRecoilValue } from 'recoil';
+import { CrucksAtom } from '../store/atoms/Crucks';
 import Navbar from '../components/Navbar';
 import axios  from 'axios'; 
 const Passenger = () => {
   const navigate = useNavigate()
+  const crucks = useRecoilValue(CrucksAtom)
   const [username,setUsername] = useRecoilState(userAtom)
   const [ticket,setTicket] = useRecoilState(TicketAtom)
   const [passengers,setPassengers] = useState([{
@@ -18,7 +20,8 @@ const Passenger = () => {
   }])
   const addNewPassenger = () =>{
     setPassengers([...passengers,{}])
-    setTicket(prevTicket => ({ ...prevTicket, passengerCount: prevTicket.passengerCount + 1 }));  }
+    setTicket(prevTicket => ({ ...prevTicket, passengerCount: prevTicket.passengerCount + 1 }));  
+  }
     const removePassenger = (indexToRemove) => {
       setPassengers(passengers.filter((_, index) => index !== indexToRemove));
       setTicket(prevTicket => ({ ...prevTicket, passengerCount: prevTicket.passengerCount - 1 })); 
@@ -30,13 +33,15 @@ const Passenger = () => {
     if(ticket.passengerCount>0)
     { 
     alert('Payment Done')
-    axios.post('http://localhost:3000/api/payment',{ticketInfo:ticket,userId:username.userId}).then((res)=>{
-      console.log(res.data)
-      if(res.data.isDone==true){
-        axios.post('http://localhost:3000/book-ticket',{ticketDetails:ticket,userId:username.userId,passengers}).then((res)=>{
+    axios.post('http://localhost:3000/api/payment',{ticketInfo:ticket,userId:username.userId,passengers}).then((res)=>{
+      console.log(res.data.payment_id)
+      if(res.data.isDone===true){
+
+        axios.post('http://localhost:3000/api/book-ticket',{ticketDetails:ticket,userId:username.userId,passengers,crucks,payment_id:res.data.payment_id}).then((res)=>{
           
+          console.log(res.data)
+
         })
-        console.log(passengers)
       }
     
     })
@@ -58,7 +63,10 @@ const Passenger = () => {
     <Navbar/>
     <center><div className='h-screen w-full justify-center items-center gap-5 overflow-scroll'>
        
-     <div className='h-[20%] w-1/3 bg-green-400 rounded-lg'>
+     <div className='h-[22%] w-1/3 bg-green-400 rounded-lg'>
+     Source      : {crucks.source}<br/>
+     Destination : {crucks.destination}<br/>
+     Travel Date : {crucks.date}<br/>
      Train-Number: {ticket.trainNumber}<br/>
      Train-name  : {ticket.trainName}<br/>
      class       : {ticket.class}<br/>
