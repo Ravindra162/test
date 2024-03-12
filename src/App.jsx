@@ -8,6 +8,8 @@ import User_sample from './pages/User_sample'
 import Success from './pages/Success'
 import Failed from './pages/Failed'
 import Passenger from './pages/Passenger'
+import Profile from './pages/Profile'
+import Admin from './admin/pages/Admin'
 
 export default function App() {
   return (
@@ -22,7 +24,8 @@ export default function App() {
          <Route exact path='/option' element={<Option/>}/>
          <Route exact path='/user/filldetails' element={<Passenger/>}/>
          <Route exact path='/user/payment/success' element={<Success/>}/>
-         <Route exact path='/user/payment/failed' element={<Failed/>}/>
+         <Route exact path='/user/profile' element={<Profile/>}/>
+         <Route exact path='/admin' element={<Admin/>}/>
        </Routes>
 
 

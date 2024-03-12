@@ -5,16 +5,21 @@ const cors = require('cors')
 const jwt = require('jsonwebtoken')
 const mysql = require('mysql')
 const {createPool} = require('mysql')
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
+// const pool = mysql.createPool({
+//     host:process.env.HOST,
+//     user:'ulvmgjqopj6xyagv',
+//     password:process.env.PASSWORD,
+//     database:process.env.DATABASE
+// })
 const pool = mysql.createPool({
-    host:process.env.HOST,
-    user:'ulvmgjqopj6xyagv',
-    password:process.env.PASSWORD,
-    database:process.env.DATABASE
+    host:'localhost',
+    user:'root',
+    password:'password',
+    database:'railway'
 })
 
 
-pool.query(`SELECT * from trains1`,function(err,result,fields){
+pool.query(`SELECT (1+1) AS number`,function(err,result,fields){
     if(err)throw err
     console.log('CONNECTED TO DB')
 })
@@ -83,7 +88,9 @@ app.get('/api/user',authMiddleware,(req,res)=>{
         if(err)console.log(err)
         res.json({
                 username:result[0].username,
-                userId:result[0].user_id
+                userId:result[0].user_id,
+                email:result[0].email,
+                role:result[0].role
          })
      })
 })
@@ -390,6 +397,32 @@ app.post('/api/book-ticket', (req, res) => {
 //     // 3. passenger insertion
 //     // 4. booking insertion
 //     // 5. ticket count updation in class table
+
+app.get('/api/recent-transactions',authMiddleware,(req,res)=>{
+    const userEmail = req.user.email
+    pool.query(`SELECT * FROM users WHERE email=?`,[userEmail],(err,result)=>{
+        if(err)throw err
+        console.log(result[0])
+        pool.query(`SELECT * from payment where user_id=?`,[result[0].user_id],(err,result)=>{
+           res.json({
+            result:result
+           })
+        })
+    })
+})
+
+app.get('/api/recent-bookings',authMiddleware,(req,res)=>{
+    const userEmail = req.user.email
+    pool.query(`SELECT * FROM users WHERE email=?`,[userEmail],(err,result)=>{
+        if(err)throw err
+        console.log(result[0])
+        pool.query(`SELECT * from ticket where bookedBy_id=?`,[result[0].user_id],(err,result)=>{
+           res.json({
+            result:result
+           })
+        })
+    })
+})
 
 app.listen(PORT || process.env.PORT,()=>{
     console.log('Server is running on port 3000')

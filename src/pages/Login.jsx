@@ -3,6 +3,7 @@ import {Link,useNavigate} from 'react-router-dom'
 import axios from 'axios'
 import { isLoadingAtom } from '../store/atoms/isLoading'
 import { useRecoilState } from 'recoil'
+import Loading from '../components/Loading'
 export default function Login() {
   const navigate = useNavigate()
   const [email,setEmail] = useState('')
@@ -10,11 +11,11 @@ export default function Login() {
   const [isLoading,setIsLoading] = useRecoilState(isLoadingAtom)  
   function Login(e){
      e.preventDefault()
-
+     setIsLoading(true)
      axios.post('http://localhost:3000/api/login',{email,password})
      .then((response)=>{
-
-         setIsLoading(true)
+      
+         
         if(response.data.message==='Login Success'){
           setTimeout(()=>{
             const token = response.data.token
@@ -31,7 +32,7 @@ export default function Login() {
   return (
     <div className='h-screen w-full flex flex-col justify-center items-center' id='container'>
       
-      
+    {isLoading&&<Loading/>}
         <div className='h-1/2 w-2/5 bg-slate-200 rounded-lg shadow-2xl'>
              
              <form method='post' 
