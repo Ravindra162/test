@@ -13,7 +13,7 @@ const {createPool} = require('mysql')
 // })
 const pool = mysql.createPool({
     host:'localhost',
-    user:'root',
+    user:'ravindra',
     password:'password',
     database:'railway'
 })
@@ -189,7 +189,7 @@ app.get('/api/search',(req,res)=>{
   })
 
 
-  function generatePNR(existingNumbers) {
+function generatePNR(existingNumbers) {
     const generatedPNR = Math.floor(Math.random() * (1999999999 - 100000000 + 1)) + 1000000000;
 
     if (existingNumbers.includes(generatedPNR)) {
@@ -423,6 +423,57 @@ app.get('/api/recent-bookings',authMiddleware,(req,res)=>{
         })
     })
 })
+
+app.post('/api/admin/addTrain',authMiddleware,(req,res)=>{
+    const {trainData,routes,compartments} = req.body
+    console.log(trainData)
+    console.log(routes)
+    console.log(compartments)
+    
+    
+    pool.getConnection((err,connection)=>{
+        if(err) throw err
+        
+            connection.beginTransaction((err,connection)=>{
+                if(err) throw err
+                pool.query(`INSERT INTO trains1 (train_number,train_name,source,destination)
+                values (?,?,?,?)`,[trainData.trainNumber,trainData.trainName,trainData.source,trainData.destination],(err,res)=>{
+                  if(err) {
+                    connection.rollback()
+                    throw err
+                  }
+                  console.log(res)
+                     connection.query(`INSERT INTO routes1 (train_number, curr_station, stop_no, arrival_time, departure_time)
+                     VALUES  ?`,[routes.map((route,index)=>{
+                        if(index===routes.length-1){
+                            return [trainData.trainName,route.station,route.stopNumber,route.arrivalDate+route.arrivalTime,NULL]
+                        }
+                        return
+                        [trainData.trainName,route.station,route.stopNumber,route.arrivalDate+route.arrivalTime,route.departureDate+route.departureTime]})],(err,result)=>{
+                        if(err) {
+                            connection.rollback()
+                            throw err
+                            
+                        }
+                        console.log(result)
+                          connection.query(`INSERT INTO compartment (compartment_id,compartment_name,capacity,train_number,class_type) values ?`,
+                          [compartments.map(compartment=>[compartment.compartmentName,compartment.capacity,trainData.trainNumber,compartment.class])],(err,results)=>{
+                            if(err){
+                                connection.rollback()
+                                throw err
+                            }
+                            console.log(results)
+                          })
+                     })
+
+                })
+            })
+        })
+    })
+    
+    
+   
+
 
 app.listen(PORT || process.env.PORT,()=>{
     console.log('Server is running on port 3000')
