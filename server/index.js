@@ -137,24 +137,24 @@ app.get('/api/search',(req,res)=>{
     console.log('date - '+date)
     pool.query(`
     SELECT  t1.train_number,t1.train_name,TIME(r2.arrival_time) AS
-     sourceTime,DATE(r2.arrival_time) AS
-     sourceDate,TIME(r1.arrival_time) AS destinationTime, DATE(r1.arrival_time) AS destinationDate,
-      c.class_type,    
-      c.seats_available AS available_tickets,    
-       c.ticket_price 
-       FROM trains1 t1 JOIN 
-       routes1 r2 ON t1.train_number = r2.train_number JOIN routes1 r1 ON 
-       r2.train_number = r1.train_number  JOIN      
-       class c ON t1.train_number = c.train_number 
-       WHERE r2.curr_station =? AND r1.curr_station =?    
-       AND r2.stop_no < r1.stop_no  AND DATE(c.train_date) =?;
+    sourceTime,DATE(r2.arrival_time) AS
+    sourceDate,TIME(r1.arrival_time) AS destinationTime, DATE(r1.arrival_time) AS destinationDate,
+    c.class_type,    
+    c.seats_available AS available_tickets,    
+    c.ticket_price 
+    FROM trains1 t1 JOIN 
+    routes1 r2 ON t1.train_number = r2.train_number JOIN routes1 r1 ON 
+    r2.train_number = r1.train_number  JOIN      
+    class c ON t1.train_number = c.train_number 
+    WHERE r2.curr_station =? AND r1.curr_station =?    
+    AND r2.stop_no < r1.stop_no  AND DATE(c.train_date) =?;
 
     `,[src,dest,date],(err,result,fields)=>{
        
         if(err)
         return console.log(err)
         if(result.length){
-            // co   nsole.log(result)
+            // console.log(result)
             var new_result = arrangeData(result)
             console.log(new_result[0])
             
@@ -178,8 +178,8 @@ app.get('/api/search',(req,res)=>{
     const {userId,ticketInfo,passengers} = req.body
     console.log(ticketInfo)
     console.log(passengers)
-    pool.query(`INSERT INTO payment (payment_amount, date, method, user_id)
-                VALUES (?, NOW(), 'NETBANKING',?);`,[ticketInfo.price*ticketInfo.passengerCount,userId],(err,result,fields)=>{
+    pool.query(`INSERT INTO payment (payment_amount, date, method, user_id,status)
+                VALUES (?, NOW(), 'NETBANKING',?,1);`,[ticketInfo.price*ticketInfo.passengerCount,userId],(err,result,fields)=>{
                     if(err)return console.log(err)
                     console.log(result.insertId)
                     res.json({
@@ -425,52 +425,149 @@ app.get('/api/recent-bookings',authMiddleware,(req,res)=>{
 })
 
 app.post('/api/admin/addTrain',authMiddleware,(req,res)=>{
-    const {trainData,routes,compartments} = req.body
+    const {trainData,routes,compartments,classData} = req.body
     console.log(trainData)
     console.log(routes)
     console.log(compartments)
-    
-    
+    console.log(classData)
     pool.getConnection((err,connection)=>{
-        if(err) throw err
-        
-            connection.beginTransaction((err,connection)=>{
-                if(err) throw err
-                pool.query(`INSERT INTO trains1 (train_number,train_name,source,destination)
-                values (?,?,?,?)`,[trainData.trainNumber,trainData.trainName,trainData.source,trainData.destination],(err,res)=>{
-                  if(err) {
-                    connection.rollback()
-                    throw err
-                  }
-                  console.log(res)
-                     connection.query(`INSERT INTO routes1 (train_number, curr_station, stop_no, arrival_time, departure_time)
-                     VALUES  ?`,[routes.map((route,index)=>{
-                        if(index===routes.length-1){
-                            return [trainData.trainName,route.station,route.stopNumber,route.arrivalDate+route.arrivalTime,NULL]
-                        }
-                        return
-                        [trainData.trainName,route.station,route.stopNumber,route.arrivalDate+route.arrivalTime,route.departureDate+route.departureTime]})],(err,result)=>{
-                        if(err) {
-                            connection.rollback()
-                            throw err
-                            
-                        }
-                        console.log(result)
-                          connection.query(`INSERT INTO compartment (compartment_id,compartment_name,capacity,train_number,class_type) values ?`,
-                          [compartments.map(compartment=>[compartment.compartmentName,compartment.capacity,trainData.trainNumber,compartment.class])],(err,results)=>{
-                            if(err){
-                                connection.rollback()
-                                throw err
-                            }
-                            console.log(results)
-                          })
-                     })
-
+        if(err)throw err
+        connection.beginTransaction((err)=>{
+            if(err)return console.log(err)
+            connection.query(`INSERT INTO trains1 (train_number,train_name,source,destination) VALUES (?,?,?,?)`,
+        [trainData.trainNumber,trainData.trainName,trainData.source,trainData.destination],(err,res)=>{
+                if(err){
+                    return connection.rollback(() => {
+                        console.error(err);
+                        connection.release();
+                    });
+                }
+                console.log('Inserted',res)
+                connection.query(`INSERT INTO routes1 (train_number,curr_station,stop_no,arrival_time,departure_time) values ?`,
+                [routes.map((route,index)=>{
+                    if(index===routes.length-1)
+                    return [trainData.trainNumber,route.stationName,route.stopNo,route.arrivalDate+' '+route.arrivalTime,null]
+                    else return [trainData.trainNumber,route.stationName,route.stopNo,route.arrivalDate+' '+route.arrivalTime,route.departureDate+' '+route.departureTime]
+                })],(err,result)=>{
+                    if(err) return connection.rollback(() => {
+                        console.error(err);
+                        connection.release();
+                    });
+                    console.log(result)
+                  
+                    connection.query(`INSERT INTO compartment (compartment_name,capacity,train_number,class_type) values ?`,
+                    [compartments.map(compartment=>[compartment.compartmentName,compartment.capacity,trainData.trainNumber,compartment.class])],(err,compartments)=>{
+                        if(err)return connection.rollback(() => {
+                            console.error(err);
+                            connection.release();
+                        });
+                        console.log(compartments)
+                        connection.query(`SELECT train_number, class_type, SUM(capacity) AS total_seats_available
+                        FROM compartment
+                        WHERE train_number = ?
+                        GROUP BY train_number, class_type;`,[trainData.trainNumber],(err,list)=>{
+                            if(err) throw err
+                            console.log(list)
+                            const getPriceFromClass = (classData, targetClass) => {
+                                const classObject = classData.find(item => item.class === targetClass);
+                                return classObject ? classObject.price : null;
+                              };
+                              for(var m=0;m<list.length;m++)
+                              connection.query(`INSERT into class (train_number,class_type,seats_available,ticket_price,train_date)
+                                 values (?,?,?,?,?)`,[trainData.trainNumber,list[m].class_type,list[m].total_seats_available,getPriceFromClass(classData,list[m].class_type),trainData.startDate+' 00:00:00'],
+                                 (err,done)=>{
+                                    if(err)console.log(err)
+                                    console.log('Class inserted - '+done)
+                                 })
+                            connection.commit((err) => {
+                                if (err) {
+                                    return connection.rollback(() => {
+                                        console.error(err);
+                                        connection.release();
+                                    });
+                                }
+                                
+                                console.log('Transaction Completed');
+                                connection.release();})  
+                        //     connection.query(`INSERT INTO class (train_number,class,seats_available,ticket_price,train_date)
+                        //   VALUES ? 
+                        //  `)
+                        })
+                         
+                        
+                    }
+                    )
                 })
-            })
+               
+        })
+
         })
     })
     
+    })
+
+app.post('/api/fetch-ticket',authMiddleware,(req,res)=>{
+    console.log(req.body.PNR)
+    const pnr = '2339062338'; // Example PNR number, replace it with your actual variable value
+
+pool.query(`
+    SELECT 
+        t.train_number,
+        t.source,
+        t.destination,
+        t.start_date,
+        t.end_date,
+        t.class,
+        py.payment_amount,
+        b.seat_number,
+        b.compartment_name,
+        passenger.passenger_id,
+        passenger.first_name,
+        passenger.last_name,
+        passenger.age,
+        passenger.gender,
+        passenger.contact
+    FROM
+        ticket t
+    JOIN bookings b ON t.PNR = b.PNR
+    JOIN payment py ON t.payment_id = py.payment_id
+    JOIN passenger ON b.passenger_id = passenger.passenger_id
+    WHERE t.PNR = ?;
+`, [pnr], (error, results) => {
+    if (error) {
+        console.error('Error fetching booking details:', error);
+        throw error;
+    }
+    
+    console.log('Booking details:', results);
+    res.send(results)
+});
+
+})
+   
+app.post('/api/cancel-ticket',authMiddleware,(req,res)=>{
+    const pnr = req.body.PNR
+    pool.query(
+        `UPDATE payment SET status = ? WHERE payment_id = (
+          SELECT payment_id FROM ticket WHERE PNR = ?
+        )`,
+        [3, pnr],
+        (error, results) => {
+          if (error) {
+            console.error('Error updating payment status:', error);
+            throw error;
+          }
+          
+          console.log('Payment status updated successfully');
+        }
+      );
+})
+
+app.post('/api/admin/approve',authMiddleware,(req,res)=>{
+
+    const pnr = req.body.PNR
+
+})
     
    
 

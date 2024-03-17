@@ -5,14 +5,25 @@ import {Button} from "@nextui-org/react";
 import {ScrollShadow} from "@nextui-org/react";
 import {Card, CardBody} from "@nextui-org/react";
 import { useNavigate } from 'react-router-dom';
+import {Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure} from "@nextui-org/react";
 import axios from 'axios'
 const Profile = () => {
+  const {isOpen, onOpen, onOpenChange} = useDisclosure();
+  const [ticketDetails,setTicketDetails] = useState([])
     const navigate = useNavigate()
     const [showTransactions,setShowTransactions] = useState(false)
     const [showBookings,setShowBookings] = useState(false)
     const [user,setUser] = useRecoilState(userAtom)
     const [transactions,setTransactions] = useState([])
     const [bookings,setBookings] = useState([])
+    const [isOpenModal, setIsOpenModal] = useState(false);
+    const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  
+    const openModal = () => setIsOpenModal(true);
+    const closeModal = () => setIsOpenModal(false);
+  
+    const openCancelModal = () => setIsCancelModalOpen(true);
+    const closeCancelModal = () => setIsCancelModalOpen(false);
     useEffect(()=>{
 
         if(!localStorage.getItem('token'))
@@ -62,6 +73,28 @@ const Profile = () => {
        })
     }
 
+    const fetchTicketDetails = (PNR) =>{
+     
+      axios.post('http://localhost:3000/api/fetch-ticket',{PNR},{
+        headers:{
+          'x-access-token':localStorage.getItem('token')
+        }
+      }).then(res=>{
+        console.log(res.data)
+        setTicketDetails(res.data)
+      }).catch(err=>console.log(err))
+    }
+
+    const cancelTicket = (PNR) => {
+      axios.post('http://localhost:3000/api/cancel-ticket',{PNR},{
+        headers:{
+          'x-access-token':localStorage.getItem('token')
+        }
+      }).then(res=>{
+        console.log(res.data)
+      }).catch(err=>console.log(err))
+    }
+
   return (
     <div>
     <div>Profile</div>
@@ -109,12 +142,70 @@ const Profile = () => {
                 <p>|</p>
                 <p>{booking.class}</p>
                 <p>|</p>
-                <Button color='success'>
-                  View Details
+                <Button onPress={()=>{
+                  openModal()
+                  fetchTicketDetails(booking.PNR)
+                  }}>View Details</Button>
+      <Modal 
+        backdrop="opaque" 
+        isOpen={isOpenModal} 
+        onOpenChange={setIsOpenModal}
+        classNames={{
+          backdrop: "bg-gradient-to-t from-zinc-900 to-zinc-900/10 backdrop-opacity-20"
+        }}
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">Modal Title</ModalHeader>
+              <ModalBody>
+                {ticketDetails.length&&<><h1>{ticketDetails[0].train_number}</h1>
+                <h2>{ticketDetails[0].source}   -  {ticketDetails[0].destination}</h2>
+                {ticketDetails.map((ticket,index)=>{
+                          return <div key={index}>{ticket.passenger_id}| {ticket.first_name} | {ticket.age}</div>
+                })}</>}
+              </ModalBody>
+              <ModalFooter>
+                <Button color="danger" variant="light" onPress={closeModal}>
+                  Close
                 </Button>
-                <Button color='danger'>
-                  Cancel
+                <Button color="primary" onPress={closeModal}>
+                  Action
                 </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      <Button onPress={openCancelModal} color='danger'>Cancel</Button>
+      <Modal 
+        backdrop="opaque" 
+        isOpen={isCancelModalOpen} 
+        onOpenChange={setIsCancelModalOpen}
+        classNames={{
+          backdrop: "bg-gradient-to-t from-zinc-900 to-zinc-900/10 backdrop-opacity-20"
+        }}
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">Modal Title</ModalHeader>
+              <ModalBody>
+                <h3>Are you sure you want to cancel this ticket?</h3>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="success" variant="light" onPress={closeCancelModal}>
+                  No
+                </Button>
+                <Button color="danger" onPress={closeCancelModal} onClick={()=>{cancelTicket(booking.PNR)}}>
+                  Yes
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
               </CardBody>
             </Card>
             

@@ -4,9 +4,11 @@ import { TicketAtom } from '../store/atoms/Ticket';
 import { userAtom } from '../store/atoms/user';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { CrucksAtom } from '../store/atoms/Crucks';
+import {Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure} from "@nextui-org/react";
 import Navbar from '../components/Navbar';
 import axios  from 'axios'; 
 const Passenger = () => {
+  const {isOpen, onOpen, onOpenChange} = useDisclosure();
   const navigate = useNavigate()
   const crucks = useRecoilValue(CrucksAtom)
   const [username,setUsername] = useRecoilState(userAtom)

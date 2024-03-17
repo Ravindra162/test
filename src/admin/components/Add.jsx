@@ -25,6 +25,12 @@ const Add = () => {
     source:'',
     destination:''
   })
+
+   const [classData,setClassData] = useState([{
+    class:'',
+    price:''
+   }])
+
   const [routes, setRoutes] = useState([
     {
       stationName: '',
@@ -43,6 +49,32 @@ const Add = () => {
 
   const [openAccordionIndex, setOpenAccordionIndex] = useState(null);
 
+  const addNewClass = () =>{
+    setClassData(prevClass=>{
+        const classes = [...prevClass]
+        classes.push({
+            class:'',
+            price:''
+        })
+        return classes
+    })
+    setOpenAccordionIndex(null)
+  }
+
+  const removeClass = (index) =>{
+
+    if(classData.length<3){
+      return  alert("Please add sufficient number of Classes")
+    }
+
+    setClassData(prevClasses=>{
+        const classes = [...prevClasses]
+        classes.splice(index)
+        return classes
+    })
+    
+  }
+
   const addNewCompartment = () =>{
     setCompartments(prevCompartments=>{
         const compartments = [...prevCompartments]
@@ -55,6 +87,7 @@ const Add = () => {
     })
     setOpenAccordionIndex(null)
   }
+
 
   const removeCompartment = (index) =>{
 
@@ -111,19 +144,19 @@ const Add = () => {
             onChange={(e)=>setTrainData(prevData=>({
                 ...prevData,trainNumber:e.target.value
              }))}
-            type='number' placeholder='Enter Source' className='input input-bordered w-full max-w-xs bg-slate-100' required/>
+            type='number' placeholder='Enter Train Number' className='input input-bordered w-full max-w-xs bg-slate-100' required/>
              <input 
             onChange={(e)=>{setTrainData(prevData=>({
                ...prevData,source:e.target.value
             }))
         }}
-            type='text' placeholder='Enter Destination' className='input input-bordered w-full max-w-xs bg-slate-100' />
+            type='text' placeholder='Enter source' className='input input-bordered w-full max-w-xs bg-slate-100' />
              <input 
             onChange={(e)=>{setTrainData(prevData=>({
                ...prevData,destination:e.target.value
             }))
         }}
-            type='text' placeholder='Enter Train Name' className='input input-bordered w-full max-w-xs bg-slate-100' />
+            type='text' placeholder='Enter destination' className='input input-bordered w-full max-w-xs bg-slate-100' />
             <label htmlFor='start-date'>Start Date:</label>
             <input 
             onChange={(e)=>setTrainData(prevData=>({
@@ -298,6 +331,54 @@ const Add = () => {
             ))}
           </Accordion>
         </AccordionItem>
+     <AccordionItem key='15' title='Add class'>
+
+     <Accordion>
+            {classData.map((classes, index) => (
+              <AccordionItem
+                key={index}
+                aria-label='new Route'
+                title='new compartment'
+                open={openAccordionIndex === index}
+                onToggle={() => setOpenAccordionIndex(openAccordionIndex === index ? null : index)}
+              >
+                <form className='h-full w-full flex flex-col justify-center items-center gap-5 p-8 bg-slate-500 rounded-xl'>
+    <input 
+      onChange={(e) => {
+        const updatedClass = [...classData];
+        updatedClass[index].class = e.target.value;
+        setClassData(updatedClass);
+      }}
+      value={classData.class}
+      type='text'
+      placeholder='Enter Class'
+      className='input input-bordered w-full max-w-xs bg-slate-100'
+    />
+    <input 
+      onChange={(e) => {
+        const updatedClass = [...classData];
+        updatedClass[index].price = e.target.value;
+        setClassData(updatedClass);
+      }}
+      value={classData.price}
+      type='number'
+      placeholder='Enter price'
+      className='input input-bordered w-full max-w-xs bg-slate-100'
+    />
+   
+    <Button color='success' onClick={addNewClass}>
+      Add another class
+    </Button>
+    <Button color='danger' onClick={() => removeClass(index)}>
+      remove this class
+    </Button>
+  </form>
+              </AccordionItem>
+            ))}
+          </Accordion>
+
+     </AccordionItem>
+       
       </Accordion>
       <Button color='success'
             onClick={()=>{
@@ -306,7 +387,8 @@ const Add = () => {
                 console.log(trainData)
                 console.log(routes)
                 console.log(compartments)
-                axios.post('http://localhost:3000/api/admin/addTrain',{trainData,routes,compartments},{
+                console.log(classData)
+                axios.post('http://localhost:3000/api/admin/addTrain',{trainData,routes,compartments,classData},{
                   headers:{
                     'x-access-token':localStorage.getItem('token')
                   }

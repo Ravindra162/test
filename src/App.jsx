@@ -10,6 +10,8 @@ import Failed from './pages/Failed'
 import Passenger from './pages/Passenger'
 import Profile from './pages/Profile'
 import Admin from './admin/pages/Admin'
+import New from './pages/New'
+import NewTrains from './components/NewTrains'
 
 export default function App() {
   return (
@@ -26,6 +28,7 @@ export default function App() {
          <Route exact path='/user/payment/success' element={<Success/>}/>
          <Route exact path='/user/profile' element={<Profile/>}/>
          <Route exact path='/admin' element={<Admin/>}/>
+         <Route exact path='/trail' element={<New/>}/>
        </Routes>
 
 
