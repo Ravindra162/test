@@ -508,8 +508,8 @@ app.post('/api/admin/addTrain',authMiddleware,(req,res)=>{
 
 app.post('/api/fetch-ticket',authMiddleware,(req,res)=>{
     console.log(req.body.PNR)
-    const pnr = '2339062338'; // Example PNR number, replace it with your actual variable value
-
+     // Example PNR number, replace it with your actual variable value
+    const pnr = req.body.PNR
 pool.query(`
     SELECT 
         t.train_number,
@@ -544,30 +544,8 @@ pool.query(`
 });
 
 })
-   
-app.post('/api/cancel-ticket',authMiddleware,(req,res)=>{
-    const pnr = req.body.PNR
-    pool.query(
-        `UPDATE payment SET status = ? WHERE payment_id = (
-          SELECT payment_id FROM ticket WHERE PNR = ?
-        )`,
-        [3, pnr],
-        (error, results) => {
-          if (error) {
-            console.error('Error updating payment status:', error);
-            throw error;
-          }
-          
-          console.log('Payment status updated successfully');
-        }
-      );
-})
 
-app.post('/api/admin/approve',authMiddleware,(req,res)=>{
 
-    const pnr = req.body.PNR
-
-})
     
    
 

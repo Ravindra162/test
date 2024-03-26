@@ -29,6 +29,7 @@ export default function App() {
          <Route exact path='/user/profile' element={<Profile/>}/>
          <Route exact path='/admin' element={<Admin/>}/>
          <Route exact path='/trail' element={<New/>}/>
+         <Route exact path='/searchTrains' element={<NewTrains/>}/>
        </Routes>
 
 

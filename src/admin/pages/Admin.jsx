@@ -1,6 +1,5 @@
 import React from 'react'
 import Navbar from '../components/Navbar'
-import Cancel from '../components/Cancel'
 import Add from '../components/Add'
 const Admin = () => {
   return (<div className='h-screen w-full'>
@@ -8,7 +7,6 @@ const Admin = () => {
     <div className='h-[93.35%] w-full flex justify-center items-center'>
     <Add/>
     </div>
-    
     </div>
   )
 }
