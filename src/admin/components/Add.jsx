@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { Button } from '@nextui-org/react';
 import { Accordion, AccordionItem } from '@nextui-org/react';
+import { useRecoilState } from 'recoil';
+import { trainDataAtom } from '../../store/atoms/trainData';
+import { routesAtom } from '../../store/atoms/routes';
+import { compartmentAtom } from '../../store/atoms/compartments';
+import { classDataAtom } from '../../store/atoms/classData';
 import {z} from 'zod'
 import axios from 'axios'
 
@@ -15,37 +20,12 @@ const Add = () => {
     source:z.string(),
     destination:z.string()
   })
-  const [trainData,setTrainData] = useState({
-    trainName:'',
-    trainNumber:'',
-    startDate:'',
-    startTime:'',
-    endDate:'',
-    endTime:'',
-    source:'',
-    destination:''
-  })
+  const [trainData,setTrainData] = useRecoilState(trainDataAtom)
 
-   const [classData,setClassData] = useState([{
-    class:'',
-    price:''
-   }])
+   const [classData,setClassData] = useRecoilState(classDataAtom)
 
-  const [routes, setRoutes] = useState([
-    {
-      stationName: '',
-      stopNo: '',
-      arrivalDate: '',
-      departureDate: '',
-      arrivalTime: '',
-      departureTime: ''
-    }
-  ]);
-  const [compartments,setCompartments] = useState([{
-    compartmentName:'',
-    class:'',
-    capacity:''
-  }])
+  const [routes, setRoutes] = useRecoilState(routesAtom)
+  const [compartments,setCompartments] = useRecoilState(compartmentAtom)
 
   const [openAccordionIndex, setOpenAccordionIndex] = useState(null);
 
@@ -198,7 +178,10 @@ const Add = () => {
     <input 
       onChange={(e) => {
         const updatedRoutes = [...routes];
-        updatedRoutes[index].stationName = e.target.value;
+        updatedRoutes[index] = {
+          ...updatedRoutes[index],
+          stationName: e.target.value
+        };
         setRoutes(updatedRoutes);
       }}
       value={route.stationName}
@@ -209,7 +192,10 @@ const Add = () => {
     <input 
       onChange={(e) => {
         const updatedRoutes = [...routes];
-        updatedRoutes[index].stopNo = e.target.value;
+        updatedRoutes[index] = {
+          ...updatedRoutes[index],
+          stopNo: e.target.value
+        };
         setRoutes(updatedRoutes);
       }}
       value={route.stopNo}
@@ -221,7 +207,10 @@ const Add = () => {
     <input 
       onChange={(e) => {
         const updatedRoutes = [...routes];
-        updatedRoutes[index].arrivalDate = e.target.value;
+        updatedRoutes[index] = {
+          ...updatedRoutes[index],
+          arrivalDate: e.target.value
+        };
         setRoutes(updatedRoutes);
       }}
       value={route.arrivalDate}
@@ -233,7 +222,10 @@ const Add = () => {
     <input 
       onChange={(e) => {
         const updatedRoutes = [...routes];
-        updatedRoutes[index].arrivalTime = e.target.value;
+        updatedRoutes[index] = {
+          ...updatedRoutes[index],
+          arrivalTime: e.target.value
+        };
         setRoutes(updatedRoutes);
       }}
       value={route.arrivalTime}
@@ -243,11 +235,14 @@ const Add = () => {
     />
     <label htmlFor='departure-date'>Departure Date:</label>
     <input 
-      onChange={(e) => {
-        const updatedRoutes = [...routes];
-        updatedRoutes[index].departureDate = e.target.value;
-        setRoutes(updatedRoutes);
-      }}
+     onChange={(e) => {
+      const updatedRoutes = [...routes];
+      updatedRoutes[index] = {
+        ...updatedRoutes[index],
+        departureDate: e.target.value
+      };
+      setRoutes(updatedRoutes);
+    }}
       value={route.departureDate}
       type='date'
       placeholder='Enter End Date'
@@ -255,11 +250,14 @@ const Add = () => {
     />
     <label htmlFor='departure-time'>Departure Time:</label>
     <input 
-      onChange={(e) => {
-        const updatedRoutes = [...routes];
-        updatedRoutes[index].departureTime = e.target.value;
-        setRoutes(updatedRoutes);
-      }}
+     onChange={(e) => {
+      const updatedRoutes = [...routes];
+      updatedRoutes[index] = {
+        ...updatedRoutes[index],
+        departureTime: e.target.value
+      };
+      setRoutes(updatedRoutes);
+    }}
       value={route.departureTime}
       type='time'
       placeholder='Enter End Time'
@@ -288,11 +286,14 @@ const Add = () => {
               >
                 <form className='h-full w-full flex flex-col justify-center items-center gap-5 p-8 bg-slate-500 rounded-xl'>
     <input 
-      onChange={(e) => {
-        const updatedCompartments = [...compartments];
-        updatedCompartments[index].compartmentName = e.target.value;
-        setCompartments(updatedCompartments);
-      }}
+     onChange={(e) => {
+      const updatedCompartments = [...compartments];
+      updatedCompartments[index] = {
+        ...updatedCompartments[index],
+        compartmentName: e.target.value
+      };
+      setCompartments(updatedCompartments);
+    }}
       value={compartment.compartmentName}
       type='text'
       placeholder='Enter Compartment Name'
@@ -301,7 +302,10 @@ const Add = () => {
     <input 
       onChange={(e) => {
         const updatedCompartments = [...compartments];
-        updatedCompartments[index].class = e.target.value;
+        updatedCompartments[index] = {
+          ...updatedCompartments[index],
+          class: e.target.value
+        };
         setCompartments(updatedCompartments);
       }}
       value={compartment.class}
@@ -310,11 +314,14 @@ const Add = () => {
       className='input input-bordered w-full max-w-xs bg-slate-100'
     />
     <input 
-      onChange={(e) => {
-        const updatedCompartments = [...compartments];
-        updatedCompartments[index].capacity = e.target.value;
-        setCompartments(updatedCompartments);
-      }}
+    onChange={(e) => {
+      const updatedCompartments = [...compartments];
+      updatedCompartments[index] = {
+        ...updatedCompartments[index],
+        capacity: e.target.value
+      };
+      setCompartments(updatedCompartments);
+    }}
       value={compartment.capacity}
       type='text'
       placeholder='Enter capacity'
@@ -344,11 +351,14 @@ const Add = () => {
               >
                 <form className='h-full w-full flex flex-col justify-center items-center gap-5 p-8 bg-slate-500 rounded-xl'>
     <input 
-      onChange={(e) => {
-        const updatedClass = [...classData];
-        updatedClass[index].class = e.target.value;
-        setClassData(updatedClass);
-      }}
+     onChange={(e) => {
+      const updatedClass = [...classData];
+      updatedClass[index] = {
+        ...updatedClass[index],
+        class: e.target.value
+      };
+      setClassData(updatedClass);
+    }}
       value={classData.class}
       type='text'
       placeholder='Enter Class'
@@ -357,7 +367,10 @@ const Add = () => {
     <input 
       onChange={(e) => {
         const updatedClass = [...classData];
-        updatedClass[index].price = e.target.value;
+        updatedClass[index] = {
+          ...updatedClass[index],
+          price: e.target.value
+        };
         setClassData(updatedClass);
       }}
       value={classData.price}
